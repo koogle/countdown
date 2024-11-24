@@ -1,0 +1,11 @@
+- We are building a simple iOS app that allows user to create countdowns
+- The goal is to allow the user to set one to many countdowns that are shown on the home screen and make it easy for them to keep track of time
+- The user can set a date that they are targeting
+    - By default they just set the date
+- The app stores the count downs and shows them as a live activity on the home app
+- The user flow is the following
+    - Open app
+    - See a list of all your count downs
+    - Add a new count down
+    - Have the ability to edit or change the countdowns visible in the app
+    
