@@ -52,27 +52,41 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
     
     func getTimeline(for configuration: ConfigurationIntent, in context: Context, completion: @escaping (Timeline<CountdownEntry>) -> Void) {
         let userDefaults = CountdownShared.SharedConfig.sharedUserDefaults
+        print("Widget Debug - UserDefaults:", userDefaults?.dictionaryRepresentation().keys ?? "nil")
         
         var countdown = CountdownShared.Countdown(
             title: "Select countdown",
             targetDate: Date().addingTimeInterval(24*60*60)
         )
         
-        if let data = userDefaults?.data(forKey: CountdownShared.SharedConfig.savedCountdownsKey),
-           let countdowns = try? JSONDecoder().decode([Countdown].self, from: data) {
+        if let data = userDefaults?.data(forKey: CountdownShared.SharedConfig.savedCountdownsKey) {
+            print("Widget Debug - Found data for key:", CountdownShared.SharedConfig.savedCountdownsKey)
             
-            if let starredCountdown = countdowns.first(where: { $0.isStarred }) {
-                countdown = starredCountdown
-            } else if let selectedId = configuration.countdownId,
-                      let selectedCountdown = countdowns.first(where: { $0.id.uuidString == selectedId }) {
-                countdown = selectedCountdown
-            } else if let nextCountdown = countdowns
-                .filter({ !$0.isExpired })
-                .sorted(by: { $0.targetDate < $1.targetDate })
-                .first {
-                countdown = nextCountdown
+            if let countdowns = try? JSONDecoder().decode([Countdown].self, from: data) {
+                print("Widget Debug - Decoded countdowns:", countdowns.map { "\($0.title) (starred: \($0.isStarred))" })
+                
+                if let starredCountdown = countdowns.first(where: { $0.isStarred }) {
+                    print("Widget Debug - Found starred countdown:", starredCountdown.title)
+                    countdown = starredCountdown
+                } else if let selectedId = configuration.countdownId,
+                          let selectedCountdown = countdowns.first(where: { $0.id.uuidString == selectedId }) {
+                    print("Widget Debug - Found selected countdown:", selectedCountdown.title)
+                    countdown = selectedCountdown
+                } else if let nextCountdown = countdowns
+                    .filter({ !$0.isExpired })
+                    .sorted(by: { $0.targetDate < $1.targetDate })
+                    .first {
+                    print("Widget Debug - Using first upcoming countdown:", nextCountdown.title)
+                    countdown = nextCountdown
+                }
+            } else {
+                print("Widget Debug - Failed to decode countdowns")
             }
+        } else {
+            print("Widget Debug - No data found for key:", CountdownShared.SharedConfig.savedCountdownsKey)
         }
+        
+        print("Widget Debug - Final countdown used:", countdown.title)
         
         let entry = CountdownEntry(
             date: Date(),
