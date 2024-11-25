@@ -65,13 +65,19 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
                let selectedCountdown = countdowns.first(where: { $0.id.uuidString == selectedId }) {
                 countdown = selectedCountdown
             } else {
-                // Fallback to first upcoming countdown if none selected
-                let upcomingCountdowns = countdowns
-                    .filter { !$0.isExpired }
-                    .sorted { $0.targetDate < $1.targetDate }
-                
-                if let nextCountdown = upcomingCountdowns.first {
-                    countdown = nextCountdown
+                // If no countdown is selected or the selected one isn't found,
+                // try to use the starred countdown first
+                if let starredCountdown = countdowns.first(where: { $0.isStarred }) {
+                    countdown = starredCountdown
+                } else {
+                    // Fallback to first upcoming countdown if none selected or starred
+                    let upcomingCountdowns = countdowns
+                        .filter { !$0.isExpired }
+                        .sorted { $0.targetDate < $1.targetDate }
+                    
+                    if let nextCountdown = upcomingCountdowns.first {
+                        countdown = nextCountdown
+                    }
                 }
             }
         }

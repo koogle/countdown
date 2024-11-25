@@ -3,24 +3,25 @@ import CountdownShared
 
 struct CountdownRow: View {
     let countdown: Countdown
+    let onStar: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if countdown.isExpired {
+        HStack {
+            VStack(alignment: .leading) {
                 Text(countdown.title)
                     .font(.headline)
-                    .strikethrough()
-                Text("Expired \(abs(countdown.daysLeft)) days ago")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            } else {
-                Text(countdown.title)
-                    .font(.headline)
-                Text("\(countdown.daysLeft) days left")
+                Text(countdown.isExpired ? "\(abs(countdown.daysLeft)) days ago" : "\(countdown.daysLeft) days left")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
+            
+            Spacer()
+            
+            Button(action: onStar) {
+                Image(systemName: countdown.isStarred ? "star.fill" : "star")
+                    .foregroundColor(countdown.isStarred ? .yellow : .gray)
+            }
         }
-        .padding(.vertical, 4)
+        .contentShape(Rectangle())
     }
 } 

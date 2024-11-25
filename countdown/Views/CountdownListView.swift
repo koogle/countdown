@@ -15,42 +15,52 @@ struct CountdownListView: View {
                     List {
                         Section("Upcoming Countdowns") {
                             ForEach(countdownManager.countdowns.filter { !$0.isExpired }) { countdown in
-                                CountdownRow(countdown: countdown)
-                                    .swipeActions(edge: .trailing) {
-                                        Button(role: .destructive) {
-                                            countdownManager.deleteCountdown(countdown)
-                                        } label: {
-                                            Text("Delete")
-                                        }
-                                        
-                                        Button {
-                                            countdownToEdit = countdown
-                                        } label: {
-                                            Text("Edit")
-                                        }
-                                        .tint(.blue)
+                                CountdownRow(countdown: countdown) {
+                                    let newCountdown = Countdown(
+                                        id: countdown.id,
+                                        title: countdown.title,
+                                        targetDate: countdown.targetDate,
+                                        isStarred: !countdown.isStarred
+                                    )
+                                    countdownManager.updateCountdown(countdown, with: newCountdown)
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    countdownToEdit = countdown
+                                }
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        countdownManager.deleteCountdown(countdown)
+                                    } label: {
+                                        Text("Delete")
                                     }
+                                }
                             }
                         }
                         
                         if !countdownManager.countdowns.filter({ $0.isExpired }).isEmpty {
                             Section("Expired") {
                                 ForEach(countdownManager.countdowns.filter { $0.isExpired }) { countdown in
-                                    CountdownRow(countdown: countdown)
-                                        .swipeActions(edge: .trailing) {
-                                            Button(role: .destructive) {
-                                                countdownManager.deleteCountdown(countdown)
-                                            } label: {
-                                                Text("Delete")
-                                            }
-                                            
-                                            Button {
-                                                countdownToEdit = countdown
-                                            } label: {
-                                                Text("Edit")
-                                            }
-                                            .tint(.blue)
+                                    CountdownRow(countdown: countdown) {
+                                        let newCountdown = Countdown(
+                                            id: countdown.id,
+                                            title: countdown.title,
+                                            targetDate: countdown.targetDate,
+                                            isStarred: !countdown.isStarred
+                                        )
+                                        countdownManager.updateCountdown(countdown, with: newCountdown)
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        countdownToEdit = countdown
+                                    }
+                                    .swipeActions(edge: .trailing) {
+                                        Button(role: .destructive) {
+                                            countdownManager.deleteCountdown(countdown)
+                                        } label: {
+                                            Text("Delete")
                                         }
+                                    }
                                 }
                             }
                         }

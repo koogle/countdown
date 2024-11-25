@@ -8,7 +8,6 @@ struct AddCountdownView: View {
     @State private var title: String
     @State private var targetDate: Date
     @State private var includeTime: Bool
-    @State private var isStarred: Bool
     
     let isEditing: Bool
     let editingCountdown: Countdown?
@@ -22,7 +21,6 @@ struct AddCountdownView: View {
         _title = State(initialValue: countdown?.title ?? "")
         _targetDate = State(initialValue: countdown?.targetDate ?? Date().addingTimeInterval(7*24*60*60))
         _includeTime = State(initialValue: false)
-        _isStarred = State(initialValue: countdown?.isStarred ?? false)
     }
     
     var body: some View {
@@ -42,15 +40,6 @@ struct AddCountdownView: View {
                 
                 Toggle("Include time", isOn: $includeTime)
                     .foregroundColor(.gray)
-                
-                Toggle("Star this countdown", isOn: $isStarred)
-                    .foregroundColor(.gray)
-                    .onChange(of: isStarred) { newValue in
-                        if newValue {
-                            // Unstar any previously starred countdown
-                            countdownManager.unstarAllCountdowns()
-                        }
-                    }
             }
             .navigationTitle(isEditing ? "Edit Countdown" : "New Countdown")
             .navigationBarTitleDisplayMode(.inline)
@@ -66,14 +55,14 @@ struct AddCountdownView: View {
                                 id: editingCountdown!.id,
                                 title: title,
                                 targetDate: targetDate,
-                                isStarred: isStarred
+                                isStarred: editingCountdown!.isStarred
                             )
                             countdownManager.updateCountdown(editingCountdown!, with: countdown)
                         } else {
                             countdown = Countdown(
                                 title: title,
                                 targetDate: targetDate,
-                                isStarred: isStarred
+                                isStarred: false
                             )
                             countdownManager.addCountdown(countdown)
                         }
