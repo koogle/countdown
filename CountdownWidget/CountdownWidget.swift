@@ -19,6 +19,10 @@ struct CountdownWidget: Widget {
                 switch entry.family {
                 case .accessoryRectangular:
                     CountdownWidgetRowView(entry: entry)
+                case .accessoryCircular:
+                    CountdownWidgetCircularView(entry: entry)
+                case .systemMedium:
+                    CountdownWidgetMediumView(entry: entry)
                 default:
                     CountdownWidgetView(entry: entry)
                 }
@@ -28,8 +32,7 @@ struct CountdownWidget: Widget {
         }
         .configurationDisplayName("Countdown Days")
         .description("Shows days remaining for your selected countdown.")
-        .supportedFamilies([.systemSmall, .accessoryRectangular])
-        .contentMarginsDisabled()
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular])
     }
 }
 
@@ -123,26 +126,40 @@ struct CountdownWidgetRowView: View {
             return "\(abs(timeComponents.days))d ago"
         } else {
             if timeComponents.days > 0 {
-                return "\(timeComponents.days)d \(timeComponents.hours)h"
+                return String(format: "%dd %02dh %02dm %02ds", 
+                            timeComponents.days,
+                            timeComponents.hours,
+                            timeComponents.minutes,
+                            timeComponents.seconds)
             } else if timeComponents.hours > 0 {
-                return "\(timeComponents.hours)h \(timeComponents.minutes)m"
+                return String(format: "%dh %02dm %02ds",
+                            timeComponents.hours,
+                            timeComponents.minutes,
+                            timeComponents.seconds)
             } else {
-                return "\(timeComponents.minutes)m \(timeComponents.seconds)s"
+                return String(format: "%dm %02ds",
+                            timeComponents.minutes,
+                            timeComponents.seconds)
             }
         }
     }
     
     var body: some View {
-        HStack {
-            Text(entry.countdown.title)
-                .font(.headline)
-                .lineLimit(1)
-            Spacer()
-            Text(timeText)
-                .font(.system(.body, design: .monospaced))
+        if entry.countdown.title == "Select countdown" {
+            Text("Star a countdown")
+                .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.gray)
+        } else {
+            HStack {
+                Text(entry.countdown.title)
+                    .font(.system(size: 18, weight: .semibold))
+                    .lineLimit(1)
+                Spacer()
+                Text(timeText)
+                    .font(.system(.body, design: .monospaced))
+                    .foregroundColor(.gray)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -161,31 +178,129 @@ struct CountdownWidgetView: View {
     }
     
     var body: some View {
-        VStack(spacing: 4) {
-            if entry.countdown.isExpired {
-                Text("\(abs(entry.countdown.daysLeft))")
-                    .font(.system(size: 38, weight: .bold))
-                    .foregroundColor(.gray)
-                    .strikethrough()
-                Text("days")
+        if entry.countdown.title == "Select countdown" {
+            VStack(spacing: 4) {
+                Text("Please")
                     .font(.system(size: 16))
                     .foregroundColor(.gray)
-            } else {
-                HStack(alignment: .lastTextBaseline, spacing: 4) {
-                    Text("\(timeComponents.days)")
+                Text("star a")
+                    .font(.system(size: 16))
+                    .foregroundColor(.gray)
+                Text("countdown")
+                    .font(.system(size: 16))
+                    .foregroundColor(.gray)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .containerBackground(.white.opacity(0.8), for: .widget)
+        } else {
+            VStack(spacing: 4) {
+                if entry.countdown.isExpired {
+                    Text("\(abs(entry.countdown.daysLeft))")
                         .font(.system(size: 38, weight: .bold))
+                        .foregroundColor(.gray)
+                        .strikethrough()
                     Text("days")
                         .font(.system(size: 16))
                         .foregroundColor(.gray)
+                } else {
+                    HStack(alignment: .lastTextBaseline, spacing: 4) {
+                        Text("\(timeComponents.days)")
+                            .font(.system(size: 38, weight: .bold))
+                        Text("days")
+                            .font(.system(size: 16))
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                Text(entry.countdown.title)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .containerBackground(.white.opacity(0.8), for: .widget)
+        }
+    }
+}
+
+@available(iOSApplicationExtension 16.0, *)
+struct CountdownWidgetCircularView: View {
+    let entry: CountdownEntry
+    
+    var body: some View {
+        if entry.countdown.title == "Select countdown" {
+            Text("Star")
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+        } else {
+            Gauge(value: 1) {
+                VStack(spacing: 2) {
+                    Text("\(abs(entry.countdown.daysLeft))")
+                        .font(.system(size: 20, weight: .bold))
+                        .minimumScaleFactor(0.5)
+                    Text(entry.countdown.title)
+                        .font(.system(size: 12))
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
                 }
             }
-            
-            Text(entry.countdown.title)
-                .font(.caption)
-                .foregroundColor(.gray)
-                .lineLimit(1)
+            .gaugeStyle(.accessoryCircular)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .containerBackground(.white.opacity(0.8), for: .widget)
+    }
+}
+
+struct CountdownWidgetMediumView: View {
+    let entry: CountdownEntry
+    
+    var timeComponents: (days: Int, hours: Int, minutes: Int) {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day, .hour, .minute], from: Date(), to: entry.countdown.targetDate)
+        return (
+            days: components.day ?? 0,
+            hours: components.hour ?? 0,
+            minutes: components.minute ?? 0
+        )
+    }
+    
+    var body: some View {
+        if entry.countdown.title == "Select countdown" {
+            HStack {
+                Text("Star a countdown")
+                    .font(.headline)
+                    .foregroundColor(.gray)
+                Spacer()
+            }
+            .padding()
+            .containerBackground(.white.opacity(0.8), for: .widget)
+        } else {
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(entry.countdown.title)
+                        .font(.headline)
+                        .lineLimit(2)
+                    
+                    if entry.countdown.isExpired {
+                        Text("\(abs(timeComponents.days)) days ago")
+                            .font(.title)
+                            .foregroundColor(.gray)
+                            .strikethrough()
+                    } else {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(timeComponents.days) days")
+                                .font(.title)
+                            HStack(spacing: 4) {
+                                Text("\(timeComponents.hours) hours")
+                                Text("\(timeComponents.minutes) min")
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        }
+                    }
+                }
+                Spacer()
+            }
+            .padding()
+            .containerBackground(.white.opacity(0.8), for: .widget)
+        }
     }
 }
