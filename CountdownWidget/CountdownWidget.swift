@@ -10,23 +10,30 @@ import SwiftUI
 import Intents
 import CountdownShared
 
+// Add this function at the file level:
+func widgetBackground<Content: View>(_ content: Content) -> some View {
+    if #available(iOSApplicationExtension 17.0, *) {
+        return content
+            .containerBackground(.white.opacity(0.8), for: .widget)
+    } else {
+        return content
+            .background(.white.opacity(0.8))
+    }
+}
+
 struct CountdownWidget: Widget {
     private let kind = "CountdownWidget"
     
     var body: some WidgetConfiguration {
         IntentConfiguration(kind: kind, intent: ConfigurationIntent.self, provider: CountdownTimelineProvider()) { entry in
-            if #available(iOSApplicationExtension 16.0, *) {
-                switch entry.family {
-                case .accessoryRectangular:
-                    CountdownWidgetRowView(entry: entry)
-                case .accessoryCircular:
-                    CountdownWidgetCircularView(entry: entry)
-                case .systemMedium:
-                    CountdownWidgetMediumView(entry: entry)
-                default:
-                    CountdownWidgetView(entry: entry)
-                }
-            } else {
+            switch entry.family {
+            case .accessoryRectangular:
+                CountdownWidgetRowView(entry: entry)
+            case .accessoryCircular:
+                CountdownWidgetCircularView(entry: entry)
+            case .systemMedium:
+                CountdownWidgetMediumView(entry: entry)
+            default:
                 CountdownWidgetView(entry: entry)
             }
         }
@@ -120,31 +127,27 @@ struct CountdownWidgetRowView: View {
     
     var body: some View {
         if entry.countdown.title == "Select countdown" {
-            Text("Star a countdown")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.gray)
-                .if(#available(iOSApplicationExtension 17.0, *)) { view in
-                    view.containerBackground(.white.opacity(0.8), for: .widget)
-                }
+            widgetBackground(
+                Text("Star a countdown")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.gray)
+            )
         } else {
-            HStack {
-                Text(entry.countdown.title)
-                    .font(.system(size: 18, weight: .semibold))
-                    .lineLimit(1)
-                Spacer()
-                if entry.countdown.isExpired {
-                    Text("Completed")
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(.gray)
-                } else {
-                    Text("\(entry.countdown.daysLeft) days")
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(.gray)
+            widgetBackground(
+                VStack(alignment: .leading) {
+                    Text(entry.countdown.title)
+                        .font(.system(size: 18, weight: .semibold))
+                        .lineLimit(1)
+                    if entry.countdown.isExpired {
+                        Text("Completed")
+                            .font(.system(.body))
+                            .foregroundColor(.gray)
+                    } else {
+                        Text("\(entry.countdown.daysLeft) days")
+                            .font(.system(.body))
+                    }
                 }
-            }
-            .if(#available(iOSApplicationExtension 17.0, *)) { view in
-                view.containerBackground(.white.opacity(0.8), for: .widget)
-            }
+            )
         }
     }
 }
@@ -165,8 +168,8 @@ struct CountdownWidgetView: View {
     
     var body: some View {
         if entry.countdown.title == "Select countdown" {
-            if #available(iOSApplicationExtension 17.0, *) {
-                VStack(spacing: 4) {
+            widgetBackground(
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Please")
                         .font(.system(size: 16))
                         .foregroundColor(.gray)
@@ -177,28 +180,12 @@ struct CountdownWidgetView: View {
                         .font(.system(size: 16))
                         .foregroundColor(.gray)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 .padding()
-                .containerBackground(.white.opacity(0.8), for: .widget)
-            } else {
-                VStack(spacing: 4) {
-                    Text("Please")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
-                    Text("star a")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
-                    Text("countdown")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-                .background(.white.opacity(0.8))
-            }
+            )
         } else {
-            if #available(iOSApplicationExtension 17.0, *) {
-                VStack(spacing: 4) {
+            widgetBackground(
+                VStack(alignment: .leading, spacing: 4) {
                     Text(entry.countdown.title)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.gray)
@@ -217,33 +204,9 @@ struct CountdownWidgetView: View {
                             .foregroundColor(.gray)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 .padding()
-                .containerBackground(.white.opacity(0.8), for: .widget)
-            } else {
-                VStack(spacing: 4) {
-                    Text(entry.countdown.title)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.gray)
-                        .lineLimit(1)
-                    
-                    if entry.countdown.isExpired {
-                        Text("Done")
-                            .font(.system(size: 38, weight: .bold))
-                            .foregroundColor(.gray)
-                    } else {
-                        Text("\(timeComponents.days)")
-                            .font(.system(size: 38, weight: .bold))
-                        
-                        Text("days")
-                            .font(.system(size: 16))
-                            .foregroundColor(.gray)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-                .background(.white.opacity(0.8))
-            }
+            )
         }
     }
 }
@@ -254,36 +217,34 @@ struct CountdownWidgetCircularView: View {
     
     var body: some View {
         if entry.countdown.title == "Select countdown" {
-            Text("Star")
-                .font(.system(size: 12))
-                .foregroundColor(.gray)
-                .if(#available(iOSApplicationExtension 17.0, *)) { view in
-                    view.containerBackground(.white.opacity(0.8), for: .widget)
-                }
+            widgetBackground(
+                Text("Star")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+            )
         } else {
-            VStack(spacing: 2) {
-                Text(entry.countdown.title)
-                    .font(.system(size: 14))
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-                if entry.countdown.isExpired {
-                    Text("Done")
-                        .font(.system(size: 16, weight: .bold))
-                } else {
-                    Text("\(entry.countdown.daysLeft)")
-                        .font(.system(size: 20, weight: .bold))
-                    Text("days")
-                        .font(.system(size: 12))
-
+            widgetBackground(
+                VStack(spacing: 2) {
+                    Text(entry.countdown.title)
+                        .font(.system(size: 14))
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                    if entry.countdown.isExpired {
+                        Text("Done")
+                            .font(.system(size: 16, weight: .bold))
+                    } else {
+                        Text("\(entry.countdown.daysLeft)")
+                            .font(.system(size: 20, weight: .bold))
+                        Text("days")
+                            .font(.system(size: 12))
+                    }
                 }
-            }
-            .if(#available(iOSApplicationExtension 17.0, *)) { view in
-                view.containerBackground(.white.opacity(0.8), for: .widget)
-            }
+            )
         }
     }
 }
 
+@available(iOSApplicationExtension 16.0, *)
 struct CountdownWidgetMediumView: View {
     let entry: CountdownEntry
     
@@ -299,53 +260,43 @@ struct CountdownWidgetMediumView: View {
     
     var body: some View {
         if entry.countdown.title == "Select countdown" {
-            VStack {
-                Text("Star a countdown")
-                    .font(.headline)
-                    .foregroundColor(.gray)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding()
-            .background(.white.opacity(0.8))
-        } else {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.countdown.title)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.gray)
-                    .lineLimit(1)
-                
-                if entry.countdown.isExpired {
-                    Text("Completed")
-                        .font(.system(size: 32, weight: .semibold))
+            widgetBackground(
+                VStack {
+                    Text("Star a countdown")
+                        .font(.headline)
                         .foregroundColor(.gray)
-                } else {
-                    Text("\(timeComponents.days) days")
-                        .font(.system(size: 42, weight: .semibold))
-                        .padding(.vertical, 2)
-                    
-                    HStack(spacing: 4) {
-                        Text("\(timeComponents.hours) hours")
-                        Text("\(timeComponents.minutes) minutes")
-                    }
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .padding()
-            .background(.white.opacity(0.8))
-        }
-    }
-}
-
-// Add this extension to support the .if modifier
-extension View {
-    @ViewBuilder
-    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
-        if condition {
-            transform(self)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            )
         } else {
-            self
+            widgetBackground(
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(entry.countdown.title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+                    
+                    if entry.countdown.isExpired {
+                        Text("Completed")
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundColor(.gray)
+                    } else {
+                        Text("\(timeComponents.days) days")
+                            .font(.system(size: 42, weight: .semibold))
+                            .padding(.vertical, 2)
+                        
+                        HStack(spacing: 4) {
+                            Text("\(timeComponents.hours) hours")
+                            Text("\(timeComponents.minutes) minutes")
+                        }
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .padding()
+            )
         }
     }
 }
