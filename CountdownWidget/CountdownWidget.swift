@@ -93,36 +93,24 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
         }
         
         let currentDate = Date()
+        var entries: [CountdownEntry] = []
         
-        if context.family == .systemMedium {
+        // Create entries for every minute in the next hour
+        for minuteOffset in 0..<60 {
+            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
             let entry = CountdownEntry(
-                date: currentDate,
+                date: entryDate,
                 countdown: countdown,
                 configuration: configuration,
                 family: context.family
             )
-            
-            // Create a timeline with just one entry and request immediate refresh
-            let timeline = Timeline(entries: [entry], policy: .atEnd)
-            completion(timeline)
-        } else {
-            // Create entries for every minute in the next hour
-            for minuteOffset in 0..<60 {
-                let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
-                let entry = CountdownEntry(
-                    date: entryDate,
-                    countdown: countdown,
-                    configuration: configuration,
-                    family: context.family
-                )
-                entries.append(entry)
-            }
-            
-            // Schedule next update in an hour
-            let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
-            let timeline = Timeline(entries: entries, policy: .after(nextUpdate))
-            completion(timeline)
+            entries.append(entry)
         }
+        
+        // Schedule next update in an hour
+        let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
+        let timeline = Timeline(entries: entries, policy: .after(nextUpdate))
+        completion(timeline)
     }
 }
 
@@ -135,6 +123,9 @@ struct CountdownWidgetRowView: View {
             Text("Star a countdown")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.gray)
+                .if(#available(iOSApplicationExtension 17.0, *)) { view in
+                    view.containerBackground(.white.opacity(0.8), for: .widget)
+                }
         } else {
             HStack {
                 Text(entry.countdown.title)
@@ -146,10 +137,13 @@ struct CountdownWidgetRowView: View {
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(.gray)
                 } else {
-                    Text("\(entry.countdown.daysLeft)d")
+                    Text("\(entry.countdown.daysLeft) days")
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(.gray)
                 }
+            }
+            .if(#available(iOSApplicationExtension 17.0, *)) { view in
+                view.containerBackground(.white.opacity(0.8), for: .widget)
             }
         }
     }
@@ -171,46 +165,85 @@ struct CountdownWidgetView: View {
     
     var body: some View {
         if entry.countdown.title == "Select countdown" {
-            VStack(spacing: 4) {
-                Text("Please")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-                Text("star a")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-                Text("countdown")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding()
-            .background(.white.opacity(0.8))
-            .widgetBackground()
-        } else {
-            VStack(spacing: 4) {
-                if entry.countdown.isExpired {
-                    Text("Completed")
-                        .font(.system(size: 28, weight: .bold))
+            if #available(iOSApplicationExtension 17.0, *) {
+                VStack(spacing: 4) {
+                    Text("Please")
+                        .font(.system(size: 16))
                         .foregroundColor(.gray)
-                } else {
-                    HStack(alignment: .lastTextBaseline, spacing: 4) {
+                    Text("star a")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                    Text("countdown")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+                .containerBackground(.white.opacity(0.8), for: .widget)
+            } else {
+                VStack(spacing: 4) {
+                    Text("Please")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                    Text("star a")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                    Text("countdown")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+                .background(.white.opacity(0.8))
+            }
+        } else {
+            if #available(iOSApplicationExtension 17.0, *) {
+                VStack(spacing: 4) {
+                    Text(entry.countdown.title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+                    
+                    if entry.countdown.isExpired {
+                        Text("Done")
+                            .font(.system(size: 38, weight: .bold))
+                            .foregroundColor(.gray)
+                    } else {
                         Text("\(timeComponents.days)")
                             .font(.system(size: 38, weight: .bold))
+                        
                         Text("days")
                             .font(.system(size: 16))
                             .foregroundColor(.gray)
                     }
                 }
-                
-                Text(entry.countdown.title)
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .lineLimit(1)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+                .containerBackground(.white.opacity(0.8), for: .widget)
+            } else {
+                VStack(spacing: 4) {
+                    Text(entry.countdown.title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+                    
+                    if entry.countdown.isExpired {
+                        Text("Done")
+                            .font(.system(size: 38, weight: .bold))
+                            .foregroundColor(.gray)
+                    } else {
+                        Text("\(timeComponents.days)")
+                            .font(.system(size: 38, weight: .bold))
+                        
+                        Text("days")
+                            .font(.system(size: 16))
+                            .foregroundColor(.gray)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+                .background(.white.opacity(0.8))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding()
-            .background(.white.opacity(0.8))
-            .widgetBackground()
         }
     }
 }
@@ -224,19 +257,28 @@ struct CountdownWidgetCircularView: View {
             Text("Star")
                 .font(.system(size: 12))
                 .foregroundColor(.gray)
+                .if(#available(iOSApplicationExtension 17.0, *)) { view in
+                    view.containerBackground(.white.opacity(0.8), for: .widget)
+                }
         } else {
             VStack(spacing: 2) {
+                Text(entry.countdown.title)
+                    .font(.system(size: 14))
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
                 if entry.countdown.isExpired {
                     Text("Done")
                         .font(.system(size: 16, weight: .bold))
                 } else {
-                    Text("\(entry.countdown.daysLeft)d")
+                    Text("\(entry.countdown.daysLeft)")
                         .font(.system(size: 20, weight: .bold))
+                    Text("days")
+                        .font(.system(size: 12))
+
                 }
-                Text(entry.countdown.title)
-                    .font(.system(size: 12))
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
+            }
+            .if(#available(iOSApplicationExtension 17.0, *)) { view in
+                view.containerBackground(.white.opacity(0.8), for: .widget)
             }
         }
     }
@@ -245,14 +287,13 @@ struct CountdownWidgetCircularView: View {
 struct CountdownWidgetMediumView: View {
     let entry: CountdownEntry
     
-    var timeComponents: (days: Int, hours: Int, minutes: Int, seconds: Int) {
+    var timeComponents: (days: Int, hours: Int, minutes: Int) {
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.day, .hour, .minute, .second], from: Date(), to: entry.countdown.targetDate)
+        let components = calendar.dateComponents([.day, .hour, .minute], from: Date(), to: entry.countdown.targetDate)
         return (
             days: components.day ?? 0,
             hours: components.hour ?? 0,
-            minutes: components.minute ?? 0,
-            seconds: components.second ?? 0
+            minutes: components.minute ?? 0
         )
     }
     
@@ -266,42 +307,45 @@ struct CountdownWidgetMediumView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(.white.opacity(0.8))
-            .widgetBackground()
         } else {
-            VStack(alignment: .center, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(entry.countdown.title)
-                    .font(.headline)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.gray)
                     .lineLimit(1)
                 
                 if entry.countdown.isExpired {
                     Text("Completed")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 32, weight: .semibold))
                         .foregroundColor(.gray)
                 } else {
+                    Text("\(timeComponents.days) days")
+                        .font(.system(size: 42, weight: .semibold))
+                        .padding(.vertical, 2)
+                    
                     HStack(spacing: 4) {
-                        Text("\(timeComponents.days)d")
-                        Text("\(timeComponents.hours)h")
-                        Text("\(timeComponents.minutes)m")
-                        Text("\(timeComponents.seconds)s")
+                        Text("\(timeComponents.hours) hours")
+                        Text("\(timeComponents.minutes) minutes")
                     }
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 16))
                     .foregroundColor(.gray)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .padding()
             .background(.white.opacity(0.8))
-            .widgetBackground()
         }
     }
 }
 
+// Add this extension to support the .if modifier
 extension View {
-    func widgetBackground() -> some View {
-        if #available(iOSApplicationExtension 17.0, *) {
-            return containerBackground(.white.opacity(0.8), for: .widget)
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
         } else {
-            return self
+            self
         }
     }
 }
