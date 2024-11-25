@@ -11,48 +11,25 @@ public class CountdownManager: ObservableObject {
     public init() {
         if let groupUserDefaults = UserDefaults(suiteName: SharedConfig.appGroupIdentifier) {
             self.userDefaults = groupUserDefaults
-            print("Manager Manager Debug - Using group UserDefaults", SharedConfig.appGroupIdentifier)
         } else {
             self.userDefaults = .standard
-            print("Manager Manager Debug - Fallback to standard UserDefaults")
         }
         
         loadCountdowns()
     }
     
     private func loadCountdowns() {
-        if let data = userDefaults.data(forKey: SharedConfig.savedCountdownsKey) {
-            if let decodedCountdowns = try? JSONDecoder().decode([Countdown].self, from: data) {
-                countdowns = decodedCountdowns
-                print("Manager Manager Debug - Loaded countdowns:", countdowns.map { "\($0.title) (starred: \($0.isStarred))" })
-            } else {
-                print("Manager Manager Debug - Failed to decode countdowns")
-            }
-        } else {
-            print("Manager Manager Debug - No saved countdowns found")
+        if let data = userDefaults.data(forKey: SharedConfig.savedCountdownsKey),
+           let decodedCountdowns = try? JSONDecoder().decode([Countdown].self, from: data) {
+            countdowns = decodedCountdowns
         }
     }
     
     private func saveCountdowns() {
         if let encoded = try? JSONEncoder().encode(countdowns) {
-            print("Manager Manager Debug - Saving to UserDefaults with suite:", SharedConfig.appGroupIdentifier)
-            print("Manager Manager Debug - Using key:", SharedConfig.savedCountdownsKey)
-            print("Manager Manager Debug - Data to save:", String(data: encoded, encoding: .utf8) ?? "Could not decode as string")
-            
             userDefaults.set(encoded, forKey: SharedConfig.savedCountdownsKey)
             userDefaults.synchronize()
-            
-            // Verify the save
-            if let savedData = userDefaults.data(forKey: SharedConfig.savedCountdownsKey) {
-                print("Manager Manager Debug - Verified save - Data exists")
-                print("Manager Manager Debug - Saved data:", String(data: savedData, encoding: .utf8) ?? "Could not decode as string")
-            } else {
-                print("Manager Manager Debug - Failed to verify save - No data found after saving")
-            }
-            
             WidgetCenter.shared.reloadAllTimelines()
-        } else {
-            print("Manager Manager Debug - Failed to encode countdowns")
         }
     }
     
