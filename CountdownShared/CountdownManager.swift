@@ -1,14 +1,15 @@
 import Foundation
 import SwiftUI
+import Combine
 
 public class CountdownManager: ObservableObject {
     @Published public private(set) var countdowns: [Countdown] = []
     
     private let userDefaults: UserDefaults
-    private let coundownsKey = "countdowns"
+    private let coundownsKey = SharedConfig.savedCountdownsKey
     
     public init() {
-        if let groupUserDefaults = UserDefaults(suiteName: "group.frick.jakob.countdown") {
+        if let groupUserDefaults = UserDefaults(suiteName: SharedConfig.appGroupIdentifier) {
             self.userDefaults = groupUserDefaults
         } else {
             self.userDefaults = .standard
