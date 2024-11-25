@@ -15,11 +15,20 @@ struct CountdownWidget: Widget {
     
     var body: some WidgetConfiguration {
         IntentConfiguration(kind: kind, intent: ConfigurationIntent.self, provider: CountdownTimelineProvider()) { entry in
-            CountdownWidgetView(entry: entry)
+            if #available(iOSApplicationExtension 16.0, *) {
+                switch entry.family {
+                case .accessoryRectangular:
+                    CountdownWidgetRowView(entry: entry)
+                default:
+                    CountdownWidgetView(entry: entry)
+                }
+            } else {
+                CountdownWidgetView(entry: entry)
+            }
         }
         .configurationDisplayName("Countdown Days")
         .description("Shows days remaining for your selected countdown.")
-        .supportedFamilies([.systemSmall])
+        .supportedFamilies([.systemSmall, .accessoryRectangular])
         .contentMarginsDisabled()
     }
 }
@@ -28,6 +37,7 @@ struct CountdownEntry: TimelineEntry {
     let date: Date
     let countdown: CountdownShared.Countdown
     let configuration: ConfigurationIntent
+    let family: WidgetFamily
 }
 
 struct CountdownTimelineProvider: IntentTimelineProvider {
@@ -41,7 +51,8 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
                 title: "Sample",
                 targetDate: Date().addingTimeInterval(7*24*60*60)
             ),
-            configuration: ConfigurationIntent()
+            configuration: ConfigurationIntent(),
+            family: .systemSmall
         )
     }
     
@@ -100,13 +111,57 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
         let entry = CountdownEntry(
             date: Date(),
             countdown: countdown,
-            configuration: configuration
+            configuration: configuration,
+            family: context.family
         )
         
         let nextUpdate = Date().addingTimeInterval(5)
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         
         completion(timeline)
+    }
+}
+
+@available(iOSApplicationExtension 16.0, *)
+struct CountdownWidgetRowView: View {
+    let entry: CountdownEntry
+    
+    var timeComponents: (days: Int, hours: Int, minutes: Int, seconds: Int) {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day, .hour, .minute, .second], from: Date(), to: entry.countdown.targetDate)
+        return (
+            days: components.day ?? 0,
+            hours: components.hour ?? 0,
+            minutes: components.minute ?? 0,
+            seconds: components.second ?? 0
+        )
+    }
+    
+    var timeText: String {
+        if entry.countdown.isExpired {
+            return "\(abs(timeComponents.days))d ago"
+        } else {
+            if timeComponents.days > 0 {
+                return "\(timeComponents.days)d \(timeComponents.hours)h"
+            } else if timeComponents.hours > 0 {
+                return "\(timeComponents.hours)h \(timeComponents.minutes)m"
+            } else {
+                return "\(timeComponents.minutes)m \(timeComponents.seconds)s"
+            }
+        }
+    }
+    
+    var body: some View {
+        HStack {
+            Text(entry.countdown.title)
+                .font(.headline)
+                .lineLimit(1)
+            Spacer()
+            Text(timeText)
+                .font(.system(.body, design: .monospaced))
+                .foregroundColor(.gray)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
