@@ -105,13 +105,6 @@
 			);
 			target = 36E824A82CF440CC0045263F /* CountdownWidgetExtension */;
 		};
-		36E824E32CF444770045263F /* Exceptions for "CountdownShared" folder in "CountdownShared" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			publicHeaders = (
-				CountdownShared.h,
-			);
-			target = 36E824CB2CF444770045263F /* CountdownShared */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -140,9 +133,6 @@
 		};
 		36E824CD2CF444770045263F /* CountdownShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				36E824E32CF444770045263F /* Exceptions for "CountdownShared" folder in "CountdownShared" target */,
-			);
 			path = CountdownShared;
 			sourceTree = "<group>";
 		};

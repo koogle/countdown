@@ -1,0 +1,8 @@
+We are creating a simple minimal ios app that allows users to create count downs.
+The user flow is as follows:
+- the user opens the applicaiton and sees the list of count downs
+- if there are no countdowns there is an outlines button to add a countdown in the empty state
+- when the user adds a countdown it has a name
+    - by default the countdown is one week from now
+    - the user sets the date by default but can also set the time
+- the user can add countdowns as widgets to their home screen or their lock screen
