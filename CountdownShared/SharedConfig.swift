@@ -5,6 +5,9 @@ public enum SharedConfig {
     public static let savedCountdownsKey = "savedCountdowns"
     
     public static var sharedUserDefaults: UserDefaults? {
-        return UserDefaults(suiteName: appGroupIdentifier)
+        let defaults = UserDefaults(suiteName: appGroupIdentifier)
+        print("Debug - Creating shared UserDefaults with suite:", appGroupIdentifier)
+        print("Debug - UserDefaults is nil:", defaults == nil)
+        return defaults
     }
 } 
