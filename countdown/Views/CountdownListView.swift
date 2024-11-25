@@ -6,6 +6,23 @@ struct CountdownListView: View {
     @State private var showingAddCountdown = false
     @State private var countdownToEdit: Countdown?
     
+    var sortedUpcomingCountdowns: [Countdown] {
+        countdownManager.countdowns
+            .filter { !$0.isExpired }
+            .sorted { first, second in
+                if first.isStarred != second.isStarred {
+                    return first.isStarred // Starred items come first
+                }
+                return first.targetDate < second.targetDate // Then sort by date
+            }
+    }
+    
+    var sortedExpiredCountdowns: [Countdown] {
+        countdownManager.countdowns
+            .filter { $0.isExpired }
+            .sorted { $0.targetDate > $1.targetDate } // Most recently expired first
+    }
+    
     var body: some View {
         NavigationView {
             Group {
@@ -14,7 +31,7 @@ struct CountdownListView: View {
                 } else {
                     List {
                         Section("Upcoming Countdowns") {
-                            ForEach(countdownManager.countdowns.filter { !$0.isExpired }) { countdown in
+                            ForEach(sortedUpcomingCountdowns) { countdown in
                                 CountdownRow(countdown: countdown) {
                                     let newCountdown = Countdown(
                                         id: countdown.id,
@@ -38,9 +55,9 @@ struct CountdownListView: View {
                             }
                         }
                         
-                        if !countdownManager.countdowns.filter({ $0.isExpired }).isEmpty {
+                        if !sortedExpiredCountdowns.isEmpty {
                             Section("Expired") {
-                                ForEach(countdownManager.countdowns.filter { $0.isExpired }) { countdown in
+                                ForEach(sortedExpiredCountdowns) { countdown in
                                     CountdownRow(countdown: countdown) {
                                         let newCountdown = Countdown(
                                             id: countdown.id,

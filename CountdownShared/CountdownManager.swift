@@ -60,15 +60,40 @@ public class CountdownManager: ObservableObject {
     }
     
     public func addCountdown(_ countdown: Countdown) {
-        if countdown.isStarred {
+        var newCountdown = countdown
+        // If this is the first countdown, star it automatically
+        if countdowns.isEmpty {
+            newCountdown = Countdown(
+                id: countdown.id,
+                title: countdown.title,
+                targetDate: countdown.targetDate,
+                isStarred: true
+            )
+        } else if countdown.isStarred {
             unstarAllCountdowns()
         }
-        countdowns.append(countdown)
+        countdowns.append(newCountdown)
         saveCountdowns()
     }
     
     public func deleteCountdown(_ countdown: Countdown) {
+        let wasStarred = countdown.isStarred
         countdowns.removeAll { $0.id == countdown.id }
-        saveCountdowns()
+        
+        // If we deleted a starred countdown, star the next available one
+        if wasStarred && !countdowns.isEmpty {
+            // Try to star the first non-expired countdown, otherwise star the first one
+            if let nextCountdown = countdowns.first(where: { !$0.isExpired }) ?? countdowns.first {
+                let starredCountdown = Countdown(
+                    id: nextCountdown.id,
+                    title: nextCountdown.title,
+                    targetDate: nextCountdown.targetDate,
+                    isStarred: true
+                )
+                updateCountdown(nextCountdown, with: starredCountdown)
+            }
+        } else {
+            saveCountdowns()
+        }
     }
 } 
