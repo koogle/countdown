@@ -276,7 +276,7 @@ struct CountdownWidgetMediumView: View {
                         Text("\(timeComponents.seconds)s")
                     }
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundiColor(.gray)
+                    .foregroundColor(.gray)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
