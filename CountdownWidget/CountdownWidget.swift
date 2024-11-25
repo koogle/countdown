@@ -92,27 +92,37 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
             }
         }
         
-        // Create multiple entries for the next hour
         let currentDate = Date()
-        var entries: [CountdownEntry] = []
         
-        // Create entries for every minute in the next hour
-        for minuteOffset in 0..<60 {
-            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
+        if context.family == .systemMedium {
             let entry = CountdownEntry(
-                date: entryDate,
+                date: currentDate,
                 countdown: countdown,
                 configuration: configuration,
                 family: context.family
             )
-            entries.append(entry)
+            
+            // Create a timeline with just one entry and request immediate refresh
+            let timeline = Timeline(entries: [entry], policy: .atEnd)
+            completion(timeline)
+        } else {
+            // Create entries for every minute in the next hour
+            for minuteOffset in 0..<60 {
+                let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
+                let entry = CountdownEntry(
+                    date: entryDate,
+                    countdown: countdown,
+                    configuration: configuration,
+                    family: context.family
+                )
+                entries.append(entry)
+            }
+            
+            // Schedule next update in an hour
+            let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
+            let timeline = Timeline(entries: entries, policy: .after(nextUpdate))
+            completion(timeline)
         }
-        
-        // Schedule next update in an hour
-        let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
-        let timeline = Timeline(entries: entries, policy: .after(nextUpdate))
-        
-        completion(timeline)
     }
 }
 
@@ -132,7 +142,7 @@ struct CountdownWidgetRowView: View {
                     .lineLimit(1)
                 Spacer()
                 if entry.countdown.isExpired {
-                    Text("\(abs(entry.countdown.daysLeft))d ago")
+                    Text("Completed")
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(.gray)
                 } else {
@@ -179,12 +189,8 @@ struct CountdownWidgetView: View {
         } else {
             VStack(spacing: 4) {
                 if entry.countdown.isExpired {
-                    Text("\(abs(entry.countdown.daysLeft))")
-                        .font(.system(size: 38, weight: .bold))
-                        .foregroundColor(.gray)
-                        .strikethrough()
-                    Text("days")
-                        .font(.system(size: 16))
+                    Text("Completed")
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.gray)
                 } else {
                     HStack(alignment: .lastTextBaseline, spacing: 4) {
@@ -220,9 +226,13 @@ struct CountdownWidgetCircularView: View {
                 .foregroundColor(.gray)
         } else {
             VStack(spacing: 2) {
-                Text("\(abs(entry.countdown.daysLeft))d")
-                    .font(.system(size: 20, weight: .bold))
-                    .minimumScaleFactor(0.5)
+                if entry.countdown.isExpired {
+                    Text("Done")
+                        .font(.system(size: 16, weight: .bold))
+                } else {
+                    Text("\(entry.countdown.daysLeft)d")
+                        .font(.system(size: 20, weight: .bold))
+                }
                 Text(entry.countdown.title)
                     .font(.system(size: 12))
                     .minimumScaleFactor(0.5)
@@ -264,10 +274,9 @@ struct CountdownWidgetMediumView: View {
                     .lineLimit(1)
                 
                 if entry.countdown.isExpired {
-                    Text("\(abs(timeComponents.days))d ago")
+                    Text("Completed")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.gray)
-                        .strikethrough()
                 } else {
                     HStack(spacing: 4) {
                         Text("\(timeComponents.days)d")
