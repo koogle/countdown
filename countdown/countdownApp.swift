@@ -1,17 +1,10 @@
-//
-//  countdownApp.swift
-//  countdown
-//
-//  Created by Jakob Frick on 24/11/2024.
-//
-
 import SwiftUI
 
 @main
-struct countdownApp: App {
+struct CountdownApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CountdownListView()
         }
     }
-}
+} 
