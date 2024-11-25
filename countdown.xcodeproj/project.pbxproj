@@ -100,6 +100,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		36B4475E2CF52123001B6E84 /* Exceptions for "CountdownShared" folder in "CountdownShared" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			publicHeaders = (
+				CountdownShared.h,
+			);
+			target = 36E824CB2CF444770045263F /* CountdownShared */;
+		};
 		36E824C02CF440CE0045263F /* Exceptions for "CountdownWidget" folder in "CountdownWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -135,6 +142,9 @@
 		};
 		36E824CD2CF444770045263F /* CountdownShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				36B4475E2CF52123001B6E84 /* Exceptions for "CountdownShared" folder in "CountdownShared" target */,
+			);
 			path = CountdownShared;
 			sourceTree = "<group>";
 		};
