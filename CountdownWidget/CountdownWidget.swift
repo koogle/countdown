@@ -248,24 +248,24 @@ struct CountdownWidgetMediumView: View {
     
     var body: some View {
         if entry.countdown.title == "Select countdown" {
-            HStack {
+            VStack {
                 Text("Star a countdown")
                     .font(.headline)
                     .foregroundColor(.gray)
-                Spacer()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(.white.opacity(0.8))
             .widgetBackground()
         } else {
-            HStack {
+            VStack(alignment: .center, spacing: 8) {
                 Text(entry.countdown.title)
                     .font(.headline)
                     .lineLimit(1)
-                Spacer()
+                
                 if entry.countdown.isExpired {
                     Text("\(abs(timeComponents.days))d ago")
-                        .font(.title2)
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.gray)
                         .strikethrough()
                 } else {
@@ -275,10 +275,11 @@ struct CountdownWidgetMediumView: View {
                         Text("\(timeComponents.minutes)m")
                         Text("\(timeComponents.seconds)s")
                     }
-                    .font(.title2)
-                    .foregroundColor(.gray)
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundiColor(.gray)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(.white.opacity(0.8))
             .widgetBackground()
