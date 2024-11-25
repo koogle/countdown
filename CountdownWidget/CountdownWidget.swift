@@ -19,6 +19,7 @@ struct CountdownWidget: Widget {
                 switch entry.family {
                 case .accessoryRectangular:
                     CountdownWidgetRowView(entry: entry)
+                
                 case .accessoryCircular:
                     CountdownWidgetCircularView(entry: entry)
                 case .systemMedium:
@@ -110,40 +111,6 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
 struct CountdownWidgetRowView: View {
     let entry: CountdownEntry
     
-    var timeComponents: (days: Int, hours: Int, minutes: Int, seconds: Int) {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.day, .hour, .minute, .second], from: Date(), to: entry.countdown.targetDate)
-        return (
-            days: components.day ?? 0,
-            hours: components.hour ?? 0,
-            minutes: components.minute ?? 0,
-            seconds: components.second ?? 0
-        )
-    }
-    
-    var timeText: String {
-        if entry.countdown.isExpired {
-            return "\(abs(timeComponents.days))d ago"
-        } else {
-            if timeComponents.days > 0 {
-                return String(format: "%dd %02dh %02dm %02ds", 
-                            timeComponents.days,
-                            timeComponents.hours,
-                            timeComponents.minutes,
-                            timeComponents.seconds)
-            } else if timeComponents.hours > 0 {
-                return String(format: "%dh %02dm %02ds",
-                            timeComponents.hours,
-                            timeComponents.minutes,
-                            timeComponents.seconds)
-            } else {
-                return String(format: "%dm %02ds",
-                            timeComponents.minutes,
-                            timeComponents.seconds)
-            }
-        }
-    }
-    
     var body: some View {
         if entry.countdown.title == "Select countdown" {
             Text("Star a countdown")
@@ -155,9 +122,15 @@ struct CountdownWidgetRowView: View {
                     .font(.system(size: 18, weight: .semibold))
                     .lineLimit(1)
                 Spacer()
-                Text(timeText)
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundColor(.gray)
+                if entry.countdown.isExpired {
+                    Text("\(abs(entry.countdown.daysLeft))d ago")
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.gray)
+                } else {
+                    Text("\(entry.countdown.daysLeft)d")
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.gray)
+                }
             }
         }
     }
@@ -233,18 +206,15 @@ struct CountdownWidgetCircularView: View {
                 .font(.system(size: 12))
                 .foregroundColor(.gray)
         } else {
-            Gauge(value: 1) {
-                VStack(spacing: 2) {
-                    Text("\(abs(entry.countdown.daysLeft))")
-                        .font(.system(size: 20, weight: .bold))
-                        .minimumScaleFactor(0.5)
-                    Text(entry.countdown.title)
-                        .font(.system(size: 12))
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                }
+            VStack(spacing: 2) {
+                Text("\(abs(entry.countdown.daysLeft))d")
+                    .font(.system(size: 20, weight: .bold))
+                    .minimumScaleFactor(0.5)
+                Text(entry.countdown.title)
+                    .font(.system(size: 12))
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
             }
-            .gaugeStyle(.accessoryCircular)
         }
     }
 }
