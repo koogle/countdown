@@ -87,6 +87,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3625F30D2CF4F648000378C2 /* CountdownWidgetExtensionRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CountdownWidgetExtensionRelease.entitlements; sourceTree = "<group>"; };
 		36E824782CF440850045263F /* countdown.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = countdown.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		36E824882CF440860045263F /* countdownTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = countdownTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		36E824922CF440860045263F /* countdownUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = countdownUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -197,6 +198,7 @@
 		36E8246F2CF440850045263F = {
 			isa = PBXGroup;
 			children = (
+				3625F30D2CF4F648000378C2 /* CountdownWidgetExtensionRelease.entitlements */,
 				36E8247A2CF440850045263F /* countdown */,
 				36E8248B2CF440860045263F /* countdownTests */,
 				36E824952CF440860045263F /* countdownUITests */,
@@ -847,6 +849,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = CountdownWidgetExtensionRelease.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W6H9VCXQLV;

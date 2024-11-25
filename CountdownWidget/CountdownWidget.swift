@@ -61,24 +61,16 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
         if let data = userDefaults?.data(forKey: CountdownShared.SharedConfig.savedCountdownsKey),
            let countdowns = try? JSONDecoder().decode([Countdown].self, from: data) {
             
-            if let selectedId = configuration.countdownId,
-               let selectedCountdown = countdowns.first(where: { $0.id.uuidString == selectedId }) {
+            if let starredCountdown = countdowns.first(where: { $0.isStarred }) {
+                countdown = starredCountdown
+            } else if let selectedId = configuration.countdownId,
+                      let selectedCountdown = countdowns.first(where: { $0.id.uuidString == selectedId }) {
                 countdown = selectedCountdown
-            } else {
-                // If no countdown is selected or the selected one isn't found,
-                // try to use the starred countdown first
-                if let starredCountdown = countdowns.first(where: { $0.isStarred }) {
-                    countdown = starredCountdown
-                } else {
-                    // Fallback to first upcoming countdown if none selected or starred
-                    let upcomingCountdowns = countdowns
-                        .filter { !$0.isExpired }
-                        .sorted { $0.targetDate < $1.targetDate }
-                    
-                    if let nextCountdown = upcomingCountdowns.first {
-                        countdown = nextCountdown
-                    }
-                }
+            } else if let nextCountdown = countdowns
+                .filter({ !$0.isExpired })
+                .sorted(by: { $0.targetDate < $1.targetDate })
+                .first {
+                countdown = nextCountdown
             }
         }
         
@@ -88,8 +80,8 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
             configuration: configuration
         )
         
-        // Update widget every hour
-        let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
+        let calendar = Calendar.current
+        let nextUpdate = calendar.startOfDay(for: Date()).addingTimeInterval(24 * 60 * 60)
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         
         completion(timeline)

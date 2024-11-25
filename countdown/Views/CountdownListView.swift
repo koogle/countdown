@@ -65,10 +65,14 @@ struct CountdownListView: View {
                             }
                         }
                     }
+                    .listStyle(.insetGrouped)
                 }
             }
-            .navigationTitle("Countdowns")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Text("Countdowns")
+                        .font(.headline)
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddCountdown = true }) {
                         Image(systemName: "plus")
