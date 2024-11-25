@@ -37,8 +37,8 @@ struct CountdownWidget: Widget {
                 CountdownWidgetView(entry: entry)
             }
         }
-        .configurationDisplayName("Countdown Days")
-        .description("Shows days remaining for your selected countdown.")
+        .configurationDisplayName("Count down the days")
+        .description("Shows days remaining for your stared countdown.")
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular])
     }
 }
