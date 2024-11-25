@@ -19,7 +19,6 @@ struct CountdownWidget: Widget {
                 switch entry.family {
                 case .accessoryRectangular:
                     CountdownWidgetRowView(entry: entry)
-                
                 case .accessoryCircular:
                     CountdownWidgetCircularView(entry: entry)
                 case .systemMedium:
@@ -93,15 +92,25 @@ struct CountdownTimelineProvider: IntentTimelineProvider {
             }
         }
         
-        let entry = CountdownEntry(
-            date: Date(),
-            countdown: countdown,
-            configuration: configuration,
-            family: context.family
-        )
+        // Create multiple entries for the next hour
+        let currentDate = Date()
+        var entries: [CountdownEntry] = []
         
-        let nextUpdate = Date().addingTimeInterval(5)
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
+        // Create entries for every minute in the next hour
+        for minuteOffset in 0..<60 {
+            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
+            let entry = CountdownEntry(
+                date: entryDate,
+                countdown: countdown,
+                configuration: configuration,
+                family: context.family
+            )
+            entries.append(entry)
+        }
+        
+        // Schedule next update in an hour
+        let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
+        let timeline = Timeline(entries: entries, policy: .after(nextUpdate))
         
         completion(timeline)
     }
@@ -164,7 +173,9 @@ struct CountdownWidgetView: View {
                     .foregroundColor(.gray)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .containerBackground(.white.opacity(0.8), for: .widget)
+            .padding()
+            .background(.white.opacity(0.8))
+            .widgetBackground()
         } else {
             VStack(spacing: 4) {
                 if entry.countdown.isExpired {
@@ -191,7 +202,9 @@ struct CountdownWidgetView: View {
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .containerBackground(.white.opacity(0.8), for: .widget)
+            .padding()
+            .background(.white.opacity(0.8))
+            .widgetBackground()
         }
     }
 }
@@ -222,13 +235,14 @@ struct CountdownWidgetCircularView: View {
 struct CountdownWidgetMediumView: View {
     let entry: CountdownEntry
     
-    var timeComponents: (days: Int, hours: Int, minutes: Int) {
+    var timeComponents: (days: Int, hours: Int, minutes: Int, seconds: Int) {
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.day, .hour, .minute], from: Date(), to: entry.countdown.targetDate)
+        let components = calendar.dateComponents([.day, .hour, .minute, .second], from: Date(), to: entry.countdown.targetDate)
         return (
             days: components.day ?? 0,
             hours: components.hour ?? 0,
-            minutes: components.minute ?? 0
+            minutes: components.minute ?? 0,
+            seconds: components.second ?? 0
         )
     }
     
@@ -241,36 +255,43 @@ struct CountdownWidgetMediumView: View {
                 Spacer()
             }
             .padding()
-            .containerBackground(.white.opacity(0.8), for: .widget)
+            .background(.white.opacity(0.8))
+            .widgetBackground()
         } else {
             HStack {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(entry.countdown.title)
-                        .font(.headline)
-                        .lineLimit(2)
-                    
-                    if entry.countdown.isExpired {
-                        Text("\(abs(timeComponents.days)) days ago")
-                            .font(.title)
-                            .foregroundColor(.gray)
-                            .strikethrough()
-                    } else {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("\(timeComponents.days) days")
-                                .font(.title)
-                            HStack(spacing: 4) {
-                                Text("\(timeComponents.hours) hours")
-                                Text("\(timeComponents.minutes) min")
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                        }
-                    }
-                }
+                Text(entry.countdown.title)
+                    .font(.headline)
+                    .lineLimit(1)
                 Spacer()
+                if entry.countdown.isExpired {
+                    Text("\(abs(timeComponents.days))d ago")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                        .strikethrough()
+                } else {
+                    HStack(spacing: 4) {
+                        Text("\(timeComponents.days)d")
+                        Text("\(timeComponents.hours)h")
+                        Text("\(timeComponents.minutes)m")
+                        Text("\(timeComponents.seconds)s")
+                    }
+                    .font(.title2)
+                    .foregroundColor(.gray)
+                }
             }
             .padding()
-            .containerBackground(.white.opacity(0.8), for: .widget)
+            .background(.white.opacity(0.8))
+            .widgetBackground()
+        }
+    }
+}
+
+extension View {
+    func widgetBackground() -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            return containerBackground(.white.opacity(0.8), for: .widget)
+        } else {
+            return self
         }
     }
 }
