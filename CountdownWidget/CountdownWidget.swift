@@ -141,13 +141,13 @@ struct CountdownWidgetRowView: View {
                     if entry.countdown.isExpired {
                         Text("Completed")
                             .font(.system(.body))
-                            .foregroundColor(.gray)
-                    } else {
-                        Text("\(entry.countdown.daysLeft) days")
-                            .font(.system(.body))
-                    }
-                }
-            )
+                                            .foregroundColor(.gray)
+                                    } else {
+                                        Text("\(entry.countdown.daysLeft) days")
+                                            .font(.system(.body))
+                                    }
+                                }
+                            )
         }
     }
 }
