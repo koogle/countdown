@@ -10,6 +10,8 @@ struct CountdownRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(countdown.title)
                     .font(.headline)
+                    .strikethrough(countdown.isExpired)
+                    .foregroundColor(countdown.isExpired ? .gray :  .black)
                 Text(countdown.isExpired ? "\(abs(countdown.daysLeft)) days ago" : "\(countdown.daysLeft) days left")
                     .font(.subheadline)
                     .foregroundColor(.gray)
