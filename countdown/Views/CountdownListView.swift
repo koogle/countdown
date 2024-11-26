@@ -4,7 +4,6 @@ import CountdownShared
 struct CountdownListView: View {
     @StateObject private var countdownManager = CountdownManager()
     @State private var showingAddCountdown = false
-    @State private var countdownToEdit: Countdown?
     @State private var selectedCountdown: Countdown?
     
     var sortedUpcomingCountdowns: [Countdown] {
@@ -12,16 +11,46 @@ struct CountdownListView: View {
             .filter { !$0.isExpired }
             .sorted { first, second in
                 if first.isStarred != second.isStarred {
-                    return first.isStarred // Starred items come first
+                    return first.isStarred
                 }
-                return first.targetDate < second.targetDate // Then sort by date
+                return first.targetDate < second.targetDate
             }
     }
     
     var sortedExpiredCountdowns: [Countdown] {
         countdownManager.countdowns
             .filter { $0.isExpired }
-            .sorted { $0.targetDate > $1.targetDate } // Most recently expired first
+            .sorted { $0.targetDate > $1.targetDate }
+    }
+    
+    @ViewBuilder
+    func countdownRow(_ countdown: Countdown) -> some View {
+        NavigationLink(
+            destination: CountdownDetailView(countdown: countdown),
+            tag: countdown,
+            selection: $selectedCountdown
+        ) {
+            CountdownRow(countdown: countdown) {
+                toggleStar(for: countdown)
+            }
+        }
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive) {
+                countdownManager.deleteCountdown(countdown)
+            } label: {
+                Text("Delete")
+            }
+        }
+    }
+    
+    private func toggleStar(for countdown: Countdown) {
+        let newCountdown = Countdown(
+            id: countdown.id,
+            title: countdown.title,
+            targetDate: countdown.targetDate,
+            isStarred: !countdown.isStarred
+        )
+        countdownManager.updateCountdown(countdown, with: newCountdown)
     }
     
     var body: some View {
@@ -30,59 +59,17 @@ struct CountdownListView: View {
                 if countdownManager.countdowns.isEmpty {
                     EmptyStateView(showingAddCountdown: $showingAddCountdown)
                 } else {
-                    List(selection: $selectedCountdown) {
+                    List {
                         Section("Upcoming Countdowns") {
                             ForEach(sortedUpcomingCountdowns) { countdown in
-                                NavigationLink(
-                                    destination: CountdownDetailView(countdown: countdown),
-                                    tag: countdown,
-                                    selection: $selectedCountdown
-                                ) {
-                                    CountdownRow(countdown: countdown) {
-                                        let newCountdown = Countdown(
-                                            id: countdown.id,
-                                            title: countdown.title,
-                                            targetDate: countdown.targetDate,
-                                            isStarred: !countdown.isStarred
-                                        )
-                                        countdownManager.updateCountdown(countdown, with: newCountdown)
-                                    }
-                                }
-                                .swipeActions(edge: .trailing) {
-                                    Button(role: .destructive) {
-                                        countdownManager.deleteCountdown(countdown)
-                                    } label: {
-                                        Text("Delete")
-                                    }
-                                }
+                                countdownRow(countdown)
                             }
                         }
                         
                         if !sortedExpiredCountdowns.isEmpty {
                             Section("Expired") {
                                 ForEach(sortedExpiredCountdowns) { countdown in
-                                    NavigationLink(
-                                        destination: CountdownDetailView(countdown: countdown),
-                                        tag: countdown,
-                                        selection: $selectedCountdown
-                                    ) {
-                                        CountdownRow(countdown: countdown) {
-                                            let newCountdown = Countdown(
-                                                id: countdown.id,
-                                                title: countdown.title,
-                                                targetDate: countdown.targetDate,
-                                                isStarred: !countdown.isStarred
-                                            )
-                                            countdownManager.updateCountdown(countdown, with: newCountdown)
-                                        }
-                                    }
-                                    .swipeActions(edge: .trailing) {
-                                        Button(role: .destructive) {
-                                            countdownManager.deleteCountdown(countdown)
-                                        } label: {
-                                            Text("Delete")
-                                        }
-                                    }
+                                    countdownRow(countdown)
                                 }
                             }
                         }
@@ -112,7 +99,6 @@ struct CountdownListView: View {
         .navigationViewStyle(.automatic)
         .onAppear {
             if UIDevice.current.userInterfaceIdiom == .pad {
-                // Select the first countdown by default on iPad
                 selectedCountdown = sortedUpcomingCountdowns.first
             }
         }
