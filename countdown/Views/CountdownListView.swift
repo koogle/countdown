@@ -5,6 +5,7 @@ struct CountdownListView: View {
     @StateObject private var countdownManager = CountdownManager()
     @State private var showingAddCountdown = false
     @State private var countdownToEdit: Countdown?
+    @State private var selectedCountdown: Countdown?
     
     var sortedUpcomingCountdowns: [Countdown] {
         countdownManager.countdowns
@@ -29,21 +30,23 @@ struct CountdownListView: View {
                 if countdownManager.countdowns.isEmpty {
                     EmptyStateView(showingAddCountdown: $showingAddCountdown)
                 } else {
-                    List {
+                    List(selection: $selectedCountdown) {
                         Section("Upcoming Countdowns") {
                             ForEach(sortedUpcomingCountdowns) { countdown in
-                                CountdownRow(countdown: countdown) {
-                                    let newCountdown = Countdown(
-                                        id: countdown.id,
-                                        title: countdown.title,
-                                        targetDate: countdown.targetDate,
-                                        isStarred: !countdown.isStarred
-                                    )
-                                    countdownManager.updateCountdown(countdown, with: newCountdown)
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    countdownToEdit = countdown
+                                NavigationLink(
+                                    destination: CountdownDetailView(countdown: countdown),
+                                    tag: countdown,
+                                    selection: $selectedCountdown
+                                ) {
+                                    CountdownRow(countdown: countdown) {
+                                        let newCountdown = Countdown(
+                                            id: countdown.id,
+                                            title: countdown.title,
+                                            targetDate: countdown.targetDate,
+                                            isStarred: !countdown.isStarred
+                                        )
+                                        countdownManager.updateCountdown(countdown, with: newCountdown)
+                                    }
                                 }
                                 .swipeActions(edge: .trailing) {
                                     Button(role: .destructive) {
@@ -58,18 +61,20 @@ struct CountdownListView: View {
                         if !sortedExpiredCountdowns.isEmpty {
                             Section("Expired") {
                                 ForEach(sortedExpiredCountdowns) { countdown in
-                                    CountdownRow(countdown: countdown) {
-                                        let newCountdown = Countdown(
-                                            id: countdown.id,
-                                            title: countdown.title,
-                                            targetDate: countdown.targetDate,
-                                            isStarred: !countdown.isStarred
-                                        )
-                                        countdownManager.updateCountdown(countdown, with: newCountdown)
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        countdownToEdit = countdown
+                                    NavigationLink(
+                                        destination: CountdownDetailView(countdown: countdown),
+                                        tag: countdown,
+                                        selection: $selectedCountdown
+                                    ) {
+                                        CountdownRow(countdown: countdown) {
+                                            let newCountdown = Countdown(
+                                                id: countdown.id,
+                                                title: countdown.title,
+                                                targetDate: countdown.targetDate,
+                                                isStarred: !countdown.isStarred
+                                            )
+                                            countdownManager.updateCountdown(countdown, with: newCountdown)
+                                        }
                                     }
                                     .swipeActions(edge: .trailing) {
                                         Button(role: .destructive) {
@@ -85,11 +90,8 @@ struct CountdownListView: View {
                     .listStyle(.insetGrouped)
                 }
             }
+            .navigationTitle("Countdowns")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Text("Countdowns")
-                        .font(.headline)
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddCountdown = true }) {
                         Image(systemName: "plus")
@@ -99,9 +101,20 @@ struct CountdownListView: View {
             .sheet(isPresented: $showingAddCountdown) {
                 AddCountdownView(countdownManager: countdownManager)
             }
-            .sheet(item: $countdownToEdit) { countdown in
-                AddCountdownView(countdownManager: countdownManager, countdown: countdown)
+            
+            // Default view for iPad
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                Text("Select a countdown")
+                    .font(.title)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .navigationViewStyle(.automatic)
+        .onAppear {
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                // Select the first countdown by default on iPad
+                selectedCountdown = sortedUpcomingCountdowns.first
             }
         }
     }
-} 
+}
