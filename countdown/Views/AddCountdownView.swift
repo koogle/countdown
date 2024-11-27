@@ -4,23 +4,21 @@ import CountdownShared
 struct AddCountdownView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var countdownManager: CountdownManager
+    @Binding var editingCountdown: Countdown?
     
     @State private var title: String
     @State private var targetDate: Date
     @State private var includeTime: Bool
     
-    let isEditing: Bool
-    let editingCountdown: Countdown?
-    
-    init(countdownManager: CountdownManager, countdown: Countdown? = nil) {
-        debugPrint("Opening: \(countdown?.title ?? "<none>")")
+    init(countdownManager: CountdownManager, editingCountdown: Binding<Countdown?>) {
+        debugPrint("opening countdown:", editingCountdown.wrappedValue?.title)
+        
         self.countdownManager = countdownManager
-        self.editingCountdown = countdown
-        self.isEditing = countdown != nil
+        self._editingCountdown = editingCountdown
         
         // Initialize state variables
-        _title = State(initialValue: countdown?.title ?? "")
-        _targetDate = State(initialValue: countdown?.targetDate ?? Date().addingTimeInterval(7*24*60*60))
+        _title = State(initialValue: editingCountdown.wrappedValue?.title ?? "")
+        _targetDate = State(initialValue: editingCountdown.wrappedValue?.targetDate ?? Date().addingTimeInterval(7*24*60*60))
         _includeTime = State(initialValue: false)
     }
     
@@ -42,23 +40,26 @@ struct AddCountdownView: View {
                 Toggle("Include time", isOn: $includeTime)
                     .foregroundColor(.gray)
             }
-            .navigationTitle(isEditing ? "Edit Countdown" : "New Countdown")
+            .navigationTitle(editingCountdown != nil ? "Edit Countdown" : "New Countdown")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel") { 
+                        editingCountdown = nil
+                        dismiss() 
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isEditing ? "Save" : "Add") {
+                    Button(editingCountdown != nil ? "Save" : "Add") {
                         let countdown: Countdown
-                        if isEditing {
+                        if let existing = editingCountdown {
                             countdown = Countdown(
-                                id: editingCountdown!.id,
+                                id: existing.id,
                                 title: title,
                                 targetDate: targetDate,
-                                isStarred: editingCountdown!.isStarred
+                                isStarred: existing.isStarred
                             )
-                            countdownManager.updateCountdown(editingCountdown!, with: countdown)
+                            countdownManager.updateCountdown(existing, with: countdown)
                         } else {
                             countdown = Countdown(
                                 title: title,
@@ -67,11 +68,33 @@ struct AddCountdownView: View {
                             )
                             countdownManager.addCountdown(countdown)
                         }
+                        editingCountdown = nil
                         dismiss()
                     }
                     .disabled(title.isEmpty)
                 }
             }
         }
+        .onChange(of: editingCountdown) { countdown in
+            if let countdown = countdown {
+                title = countdown.title
+                targetDate = countdown.targetDate
+                // Check if the target date has a non-zero time component
+                let calendar = Calendar.current
+                let timeComponents = calendar.dateComponents([.hour, .minute, .second], from: countdown.targetDate)
+                includeTime = timeComponents.hour != 0 || timeComponents.minute != 0 || timeComponents.second != 0
+            }
+        }
+        .onAppear {
+            // Set initial values if editing
+            if let countdown = editingCountdown {
+                title = countdown.title
+                targetDate = countdown.targetDate
+                // Check if the target date has a non-zero time component
+                let calendar = Calendar.current
+                let timeComponents = calendar.dateComponents([.hour, .minute, .second], from: countdown.targetDate)
+                includeTime = timeComponents.hour != 0 || timeComponents.minute != 0 || timeComponents.second != 0
+            }
+        }
     }
-} 
+}
