@@ -25,11 +25,7 @@ struct CountdownListView: View {
     
     @ViewBuilder
     func countdownRow(_ countdown: Countdown) -> some View {
-        NavigationLink(
-            destination: CountdownDetailView(countdown: countdown),
-            tag: countdown,
-            selection: $selectedCountdown
-        ) {
+        NavigationLink(value: countdown) {
             CountdownRow(countdown: countdown) {
                 toggleStar(for: countdown)
             }
@@ -54,7 +50,7 @@ struct CountdownListView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
                 if countdownManager.countdowns.isEmpty {
                     EmptyStateView(showingAddCountdown: $showingAddCountdown)
@@ -88,12 +84,8 @@ struct CountdownListView: View {
             .sheet(isPresented: $showingAddCountdown) {
                 AddCountdownView(countdownManager: countdownManager)
             }
-            
-            // Default view for iPad
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                Text("Select a countdown")
-                    .font(.title)
-                    .foregroundColor(.secondary)
+            .navigationDestination(for: Countdown.self) { countdown in
+                CountdownDetailView(countdown: countdown)
             }
         }
         .navigationViewStyle(.automatic)

@@ -13,5 +13,6 @@ import CountdownShared
 struct CountdownWidgetBundle: WidgetBundle {
     var body: some Widget {
         CountdownWidget()
+        CountdownWidgetLiveActivity()
     }
 }

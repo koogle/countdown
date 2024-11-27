@@ -26,20 +26,42 @@ struct CountdownWidget: Widget {
     
     var body: some WidgetConfiguration {
         IntentConfiguration(kind: kind, intent: ConfigurationIntent.self, provider: CountdownTimelineProvider()) { entry in
-            switch entry.family {
-            case .accessoryRectangular:
-                CountdownWidgetRowView(entry: entry)
-            case .accessoryCircular:
-                CountdownWidgetCircularView(entry: entry)
-            case .systemMedium:
-                CountdownWidgetMediumView(entry: entry)
-            default:
-                CountdownWidgetView(entry: entry)
+            if #available(iOS 17.0, *) {
+                switch entry.family {
+                case .accessoryRectangular:
+                    CountdownWidgetRowView(entry: entry)
+                        .containerBackground(.white.opacity(0.8), for: .widget)
+                case .accessoryCircular:
+                    CountdownWidgetCircularView(entry: entry)
+                        .containerBackground(.white.opacity(0.8), for: .widget)
+                case .accessoryInline:
+                    Text("\(entry.countdown.title): \(entry.countdown.daysLeft) days")
+                case .systemMedium:
+                    CountdownWidgetMediumView(entry: entry)
+                        .containerBackground(.white.opacity(0.8), for: .widget)
+                default:
+                    InteractiveCountdownView(entry: entry)
+                }
+            } else {
+                switch entry.family {
+                case .accessoryRectangular:
+                    CountdownWidgetRowView(entry: entry)
+                        .background(.white.opacity(0.8))
+                case .accessoryCircular:
+                    CountdownWidgetCircularView(entry: entry)
+                        .background(.white.opacity(0.8))
+                case .systemMedium:
+                    CountdownWidgetMediumView(entry: entry)
+                        .background(.white.opacity(0.8))
+                default:
+                    CountdownWidgetView(entry: entry)
+                        .background(.white.opacity(0.8))
+                }
             }
         }
         .configurationDisplayName("Count down the days")
         .description("Shows days remaining for your stared countdown.")
-        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular, .accessoryInline])
     }
 }
 
@@ -298,5 +320,26 @@ struct CountdownWidgetMediumView: View {
                 .padding()
             )
         }
+    }
+}
+
+@available(iOS 17.0, *)
+struct InteractiveCountdownView: View {
+    let entry: CountdownEntry
+    @Environment(\.widgetFamily) var family
+    @State private var isPressed = false
+    
+    var body: some View {
+        CountdownWidgetView(entry: entry)
+            .containerBackground(.white.opacity(0.8), for: .widget)
+            .widgetAccentable()
+            .scaleEffect(isPressed ? 0.9 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isPressed)
+            .onTapGesture {
+                isPressed = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    isPressed = false
+                }
+            }
     }
 }
