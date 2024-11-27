@@ -11,8 +11,6 @@ struct AddCountdownView: View {
     @State private var includeTime: Bool
     
     init(countdownManager: CountdownManager, editingCountdown: Binding<Countdown?>) {
-        debugPrint("opening countdown:", editingCountdown.wrappedValue?.title)
-        
         self.countdownManager = countdownManager
         self._editingCountdown = editingCountdown
         

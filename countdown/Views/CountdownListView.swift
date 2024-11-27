@@ -92,7 +92,6 @@ struct CountdownListView: View {
                     Button(action: { 
                         editingCountdown = nil  // Clear editing countdown for new countdown
                         showingAddCountdown = true
-                        debugPrint("Clearing count down")
                     }) {
                         Image(systemName: "plus")
                     }
