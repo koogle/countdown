@@ -73,8 +73,8 @@ struct AddCountdownView: View {
                 }
             }
         }
-        .onChange(of: editingCountdown) { countdown in
-            if let countdown = countdown {
+        .onChange(of: editingCountdown) { oldValue, newValue in
+            if let countdown = newValue {
                 title = countdown.title
                 targetDate = countdown.targetDate
                 // Check if the target date has a non-zero time component
