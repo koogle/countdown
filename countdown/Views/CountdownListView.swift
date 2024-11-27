@@ -25,10 +25,12 @@ struct CountdownListView: View {
     
     @ViewBuilder
     func countdownRow(_ countdown: Countdown) -> some View {
-        NavigationLink(value: countdown) {
-            CountdownRow(countdown: countdown) {
-                toggleStar(for: countdown)
-            }
+        CountdownRow(countdown: countdown) {
+            toggleStar(for: countdown)
+        }
+        .onTapGesture {
+            selectedCountdown = countdown
+            showingAddCountdown = true
         }
         .swipeActions(edge: .trailing) {
             Button(role: .destructive) {
@@ -50,7 +52,7 @@ struct CountdownListView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 if countdownManager.countdowns.isEmpty {
                     EmptyStateView(showingAddCountdown: $showingAddCountdown)
@@ -76,16 +78,20 @@ struct CountdownListView: View {
             .navigationTitle("Countdowns")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddCountdown = true }) {
+                    Button(action: { 
+                        selectedCountdown = nil
+                        showingAddCountdown = true 
+                    }) {
                         Image(systemName: "plus")
                     }
                 }
             }
             .sheet(isPresented: $showingAddCountdown) {
-                AddCountdownView(countdownManager: countdownManager)
-            }
-            .navigationDestination(for: Countdown.self) { countdown in
-                CountdownDetailView(countdown: countdown)
+                if let countdown = selectedCountdown {
+                    AddCountdownView(countdownManager: countdownManager, countdown: countdown)
+                } else {
+                    AddCountdownView(countdownManager: countdownManager)
+                }
             }
         }
         .navigationViewStyle(.automatic)
