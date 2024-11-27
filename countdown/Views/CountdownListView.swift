@@ -24,14 +24,8 @@ struct CountdownListView: View {
     }
     
     private func handleCountdownTap(_ countdown: Countdown) {
-        print("🔍 Tapped countdown: \(countdown.title)")
         editingCountdown = countdown
-        print("🔍 Stored editing countdown: \(editingCountdown?.title ?? "<none>")")
-        
-        DispatchQueue.main.async {
-            print("🔍 Showing sheet for: \(countdown.title)")
-            showingAddCountdown = true
-        }
+        showingAddCountdown = true
     }
     
     @ViewBuilder
