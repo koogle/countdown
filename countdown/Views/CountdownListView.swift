@@ -77,16 +77,18 @@ struct CountdownListView: View {
             }
             .navigationTitle("Countdowns")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { 
-                        selectedCountdown = nil
-                        showingAddCountdown = true 
-                    }) {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
-            .sheet(isPresented: $showingAddCountdown) {
+    ToolbarItem(placement: .navigationBarTrailing) {
+        Button(action: { 
+            selectedCountdown = nil
+            showingAddCountdown = true 
+        }) {
+            Image(systemName: "plus")
+        }
+    }
+}
+            .sheet(isPresented: $showingAddCountdown, onDismiss: {
+                selectedCountdown = nil
+            }) {
                 if let countdown = selectedCountdown {
                     AddCountdownView(countdownManager: countdownManager, countdown: countdown)
                 } else {
