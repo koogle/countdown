@@ -29,8 +29,12 @@ struct CountdownListView: View {
             toggleStar(for: countdown)
         }
         .onTapGesture {
-            selectedCountdown = countdown
-            showingAddCountdown = true
+            withAnimation {
+                selectedCountdown = countdown
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    showingAddCountdown = true
+                }
+            }
         }
         .swipeActions(edge: .trailing) {
             Button(role: .destructive) {
@@ -77,18 +81,16 @@ struct CountdownListView: View {
             }
             .navigationTitle("Countdowns")
             .toolbar {
-    ToolbarItem(placement: .navigationBarTrailing) {
-        Button(action: { 
-            selectedCountdown = nil
-            showingAddCountdown = true 
-        }) {
-            Image(systemName: "plus")
-        }
-    }
-}
-            .sheet(isPresented: $showingAddCountdown, onDismiss: {
-                selectedCountdown = nil
-            }) {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { 
+                        selectedCountdown = nil
+                        showingAddCountdown = true 
+                    }) {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingAddCountdown) {
                 if let countdown = selectedCountdown {
                     AddCountdownView(countdownManager: countdownManager, countdown: countdown)
                 } else {
