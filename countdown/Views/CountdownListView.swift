@@ -4,7 +4,7 @@ import CountdownShared
 struct CountdownListView: View {
     @StateObject private var countdownManager = CountdownManager()
     @State private var showingAddCountdown = false
-    @State private var selectedCountdown: Countdown?
+    @State private var editingCountdown: Countdown?  // New state to hold the countdown being edited
     
     var sortedUpcomingCountdowns: [Countdown] {
         countdownManager.countdowns
@@ -29,12 +29,10 @@ struct CountdownListView: View {
             toggleStar(for: countdown)
         }
         .onTapGesture {
-            withAnimation {
-                selectedCountdown = countdown
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    showingAddCountdown = true
-                }
-            }
+            debugPrint("🔍 Tapped countdown: \(countdown.title)")
+            editingCountdown = countdown  // Store the countdown to edit
+            debugPrint("🔍 Stored editing countdown: \(editingCountdown?.title ?? "<none>")")
+            showingAddCountdown = true
         }
         .swipeActions(edge: .trailing) {
             Button(role: .destructive) {
@@ -80,29 +78,29 @@ struct CountdownListView: View {
                 }
             }
             .navigationTitle("Countdowns")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+            .safeAreaInset(edge: .top, content: {
+                HStack {
+                    Spacer()
                     Button(action: { 
-                        selectedCountdown = nil
+                        editingCountdown = nil  // Clear editing countdown for new countdown
                         showingAddCountdown = true 
                     }) {
                         Image(systemName: "plus")
                     }
+                    .padding(.trailing)
                 }
-            }
+                .background(Color.clear)
+            })
             .sheet(isPresented: $showingAddCountdown) {
-                if let countdown = selectedCountdown {
+                if let countdown = editingCountdown {  // Use editingCountdown instead
+                    // debugPrint("🔍 Opening edit view for: \(countdown.title)")
                     AddCountdownView(countdownManager: countdownManager, countdown: countdown)
                 } else {
+                    // debugPrint("🔍 Opening add view (no countdown selected)")
                     AddCountdownView(countdownManager: countdownManager)
                 }
             }
         }
         .navigationViewStyle(.automatic)
-        .onAppear {
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                selectedCountdown = sortedUpcomingCountdowns.first
-            }
-        }
     }
 }

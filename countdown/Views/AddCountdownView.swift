@@ -13,6 +13,7 @@ struct AddCountdownView: View {
     let editingCountdown: Countdown?
     
     init(countdownManager: CountdownManager, countdown: Countdown? = nil) {
+        debugPrint("Opening: \(countdown?.title ?? "<none>")")
         self.countdownManager = countdownManager
         self.editingCountdown = countdown
         self.isEditing = countdown != nil
