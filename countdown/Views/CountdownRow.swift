@@ -11,7 +11,7 @@ struct CountdownRow: View {
                 Text(countdown.title)
                     .font(.headline)
                     .strikethrough(countdown.isExpired)
-                    .foregroundColor(countdown.isExpired ? .gray :  .black)
+                    .foregroundColor(countdown.isExpired ? .gray : nil)
                 Text(countdown.isExpired ? "\(abs(countdown.daysLeft)) days ago" : "\(countdown.daysLeft) days left")
                     .font(.subheadline)
                     .foregroundColor(.gray)

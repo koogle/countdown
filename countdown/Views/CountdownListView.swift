@@ -80,19 +80,16 @@ struct CountdownListView: View {
                 }
             }
             .navigationTitle("Countdowns")
-            .safeAreaInset(edge: .top, content: {
-                HStack {
-                    Spacer()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { 
                         editingCountdown = nil  // Clear editing countdown for new countdown
                         showingAddCountdown = true
                     }) {
-                        Image(systemName: "plus")
+                        Text("+Add")
                     }
-                    .padding(.trailing)
                 }
-                .background(Color.clear)
-            })
+            }
             .sheet(isPresented: $showingAddCountdown) {
                 AddCountdownView(countdownManager: countdownManager, editingCountdown: $editingCountdown)
             }
