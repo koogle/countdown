@@ -14,7 +14,7 @@ struct EmptyStateView: View {
                 .foregroundColor(.gray)
             
             Button(action: { showingAddCountdown = true }) {
-                Text("+Add")
+                Text("New Countdown")
                     .font(.headline)
                     .foregroundColor(.white)
                     .padding()
