@@ -82,11 +82,11 @@ struct CountdownListView: View {
             .navigationTitle("Countdowns")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { 
-                        editingCountdown = nil  // Clear editing countdown for new countdown
+                    Button {
+                        editingCountdown = nil
                         showingAddCountdown = true
-                    }) {
-                        Text("+Add")
+                    } label: {
+                        Image(systemName: "plus")
                     }
                 }
             }
